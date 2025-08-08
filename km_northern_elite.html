@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>KM Northern Elite — USS ↔ Metric Converter</title>
+<link rel="manifest" href="manifest.json">
+<style>
+  :root{
+    --km-yellow:#FFD700;
+    --km-black:#000000;
+    --card-bg: #fff9d8;
+  }
+  html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;background:var(--km-yellow);color:var(--km-black);-webkit-font-smoothing:antialiased}
+  .app{max-width:1100px;margin:18px auto;padding:18px;background:var(--card-bg);border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,.12)}
+  header{display:flex;align-items:center;gap:12px}
+  h1{margin:0;font-size:20px}
+  .lead{margin:6px 0 12px;color:var(--km-black);opacity:.9}
+  .controls{display:flex;flex-wrap:wrap;gap:12px;margin-top:10px}
+  label{display:block;font-size:13px;margin-bottom:6px}
+  select,input{padding:8px;border:1px solid rgba(0,0,0,.12);border-radius:6px;background:white;color:var(--km-black)}
+  .row{display:flex;gap:12px;align-items:end}
+  table{width:100%;border-collapse:collapse;margin-top:14px;background:white;border-radius:6px;overflow:hidden}
+  th,td{padding:8px;border-bottom:1px solid #eee;text-align:left;font-size:13px;color:var(--km-black)}
+  th{background:#fff2a8;position:sticky;top:0;z-index:2}
+  tbody tr:nth-child(odd){background:#fffef6}
+  .result{margin-top:12px;padding:12px;border-radius:6px;background:#fffef0;border:1px solid rgba(0,0,0,.06)}
+  footer{margin-top:12px;font-size:12px;color:rgba(0,0,0,.75)}
+  .small{font-size:12px;color:rgba(0,0,0,.75)}
+  .actions{margin-left:auto}
+  @media(max-width:900px){.controls{flex-direction:column} .row{flex-direction:column;align-items:stretch}}
+  .search{margin-top:10px}
+  .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", monospace;background:#fff;padding:4px 6px;border-radius:4px}
+  .pill{display:inline-block;padding:4px 8px;border-radius:999px;background:#000;color:#FFD700;font-weight:700;font-size:12px}
+</style>
+</head>
+<body>
+<div class="app" role="application" aria-label="KM Northern Elite bolt converter app">
+  <header>
+    <div>
+      <h1>KM Northern Elite</h1>
+      <div class="lead">USS • SAE • Metric converter — fractional sizes, decimal inches, recommended nuts & flat washer ODs (in & mm) — PWA ready.</div>
+    </div>
+    <div class="actions">
+      <span class="pill">KM</span>
+    </div>
+  </header>
+
+  <div class="controls" role="region" aria-label="controls">
+    <div style="flex:1;min-width:220px">
+      <label for="mode">Mode</label>
+      <select id="mode">
+        <option value="uss-to-metric">USS / Fraction → Metric</option>
+        <option value="metric-to-uss">Metric → USS</option>
+        <option value="sae-to-metric">SAE (UNC/UNF) → Metric</option>
+      </select>
+    </div>
+
+    <div style="flex:1;min-width:220px">
+      <label id="inputLabel" for="sizeInput">USS size / Fraction</label>
+      <select id="sizeInput" aria-labelledby="inputLabel"></select>
+    </div>
+
+    <div style="flex:1;min-width:160px">
+      <label for="precision">Display</label>
+      <select id="precision">
+        <option value="common">Common equivalents</option>
+        <option value="decimal">Decimal & mm values</option>
+      </select>
+    </div>
+
+    <div style="min-width:220px">
+      <label for="filter">Filter / Search</label>
+      <input id="filter" placeholder="Type USS, fraction, decimal, metric (e.g., M8)..." />
+    </div>
+  </div>
+
+  <div id="output" class="result" aria-live="polite">Select a size to see conversion results.</div>
+
+  <div class="search small">Tip: After hosting, open in mobile browser → "Add to Home Screen" to install as an app.</div>
+
+  <table id="mappingTable" aria-label="Size mapping table">
+    <thead>
+      <tr>
+        <th>USS / SAE</th>
+        <th>Decimal (in)</th>
+        <th>Approx Metric</th>
+        <th>Metric Pitch (coarse / fine mm)</th>
+        <th>Recommended Nut</th>
+        <th>Flat Washer OD (in / mm)</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <footer>
+    <div class="small">Notes: Values are common shop approximations for quick selection. Metric coarse/fine pitches listed where common. For critical threads, consult exact spec sheets and measure OD/pitch.</div>
+  </footer>
+</div>
+
+<script>
+// Expanded dataset covering SAE, USS fractions, decimal inches, metric approximations and pitches
+const DATA = [
+  // small machine screw sizes (USS/#)
+  {label:'#4', sae:'#4-40', dec:0.1120, metric:['M3'], pitch:'0.5', nut:'#4-40 / M3 nut', washerOD_in:0.24},
+  {label:'#6', sae:'#6-32', dec:0.1380, metric:['M3.5','M4'], pitch:'0.7', nut:'#6-32 / M4 nut', washerOD_in:0.28},
+  {label:'#8', sae:'#8-32', dec:0.1640, metric:['M4','M5'], pitch:'0.8', nut:'#8-32 / M5 nut', washerOD_in:0.34},
+  {label:'#10', sae:'#10-24', dec:0.1900, metric:['M5'], pitch:'0.8', nut:'#10-24 / M5 nut', washerOD_in:0.375},
+
+  // common fractional sizes
+  {label:'3/16"', sae:'—', dec:0.1875, metric:['M5'], pitch:'0.8', nut:'3/16\" equiv / M5 nut', washerOD_in:0.4},
+  {label:'1/4"', sae:'1/4-20', dec:0.25, metric:['M6'], pitch:'1.0', nut:'1/4\"-20 / M6 nut', washerOD_in:0.5},
+  {label:'5/16"', sae:'5/16-18', dec:0.3125, metric:['M8'], pitch:'1.25', nut:'5/16\"-18 / M8 nut', washerOD_in:0.625},
+  {label:'3/8"', sae:'3/8-16', dec:0.375, metric:['M10'], pitch:'1.5', nut:'3/8\"-16 / M10 nut', washerOD_in:0.75},
+  {label:'7/16"', sae:'7/16-14', dec:0.4375, metric:['M10','M12'], pitch:'1.5 / 1.75', nut:'7/16\"-14 / M12 nut', washerOD_in:0.8},
+  {label:'1/2"', sae:'1/2-13', dec:0.5, metric:['M12'], pitch:'1.75', nut:'1/2\"-13 / M12 nut', washerOD_in:1.0},
+  {label:'9/16"', sae:'9/16-12', dec:0.5625, metric:['M14'], pitch:'2.0', nut:'9/16\"-12 / M14 nut', washerOD_in:1.06},
+  {label:'5/8"', sae:'5/8-11', dec:0.625, metric:['M16'], pitch:'2.0', nut:'5/8\"-11 / M16 nut', washerOD_in:1.18},
+  {label:'11/16"', sae:'11/16-? (rare)', dec:0.6875, metric:['M18'], pitch:'2.5', nut:'11/16\" equiv / M18 nut', washerOD_in:1.4},
+  {label:'3/4"', sae:'3/4-10', dec:0.75, metric:['M20'], pitch:'2.5', nut:'3/4\"-10 / M20 nut', washerOD_in:1.42},
+  {label:'7/8"', sae:'7/8-9', dec:0.875, metric:['M22'], pitch:'2.5', nut:'7/8\"-9 / M22 nut', washerOD_in:1.65},
+  {label:'1"', sae:'1-8', dec:1.0, metric:['M24'], pitch:'3.0', nut:'1\"-8 / M24 nut', washerOD_in:1.9},
+  {label:'1-1/8"', sae:'1-1/8-7', dec:1.125, metric:['M27'], pitch:'3.0', nut:'1-1/8\" / M27 nut', washerOD_in:2.1},
+  {label:'1-1/4"', sae:'1-1/4-7', dec:1.25, metric:['M30'], pitch:'3.5', nut:'1-1/4\" / M30 nut', washerOD_in:2.4},
+  {label:'1-1/2"', sae:'1-1/2-6', dec:1.5, metric:['M36'], pitch:'4.0', nut:'1-1/2\" / M36 nut', washerOD_in:2.7}
+];
+
+// Common metric table for reverse lookup with coarse & fine pitches
+const METRIC_DATA = [
+  {metric:'M3', major_mm:3, coarse:'0.5', fine:null, approx_in:0.1181, recommended_nut:'M3 nut', washerOD_mm:6.0},
+  {metric:'M4', major_mm:4, coarse:'0.7', fine:null, approx_in:0.1575, recommended_nut:'M4 nut', washerOD_mm:8.0},
+  {metric:'M5', major_mm:5, coarse:'0.8', fine:null, approx_in:0.1969, recommended_nut:'M5 nut', washerOD_mm:10.0},
+  {metric:'M6', major_mm:6, coarse:'1.0', fine:null, approx_in:0.2362, recommended_nut:'M6 nut', washerOD_mm:12.0},
+  {metric:'M8', major_mm:8, coarse:'1.25', fine:'1.0', approx_in:0.3150, recommended_nut:'M8 nut', washerOD_mm:16.0},
+  {metric:'M10', major_mm:10, coarse:'1.5', fine:'1.25', approx_in:0.3937, recommended_nut:'M10 nut', washerOD_mm:20.0},
+  {metric:'M12', major_mm:12, coarse:'1.75', fine:'1.25', approx_in:0.4724, recommended_nut:'M12 nut', washerOD_mm:24.0},
+  {metric:'M14', major_mm:14, coarse:'2.0', fine:'1.5', approx_in:0.5512, recommended_nut:'M14 nut', washerOD_mm:28.0},
+  {metric:'M16', major_mm:16, coarse:'2.0', fine:'1.5', approx_in:0.6299, recommended_nut:'M16 nut', washerOD_mm:32.0},
+  {metric:'M18', major_mm:18, coarse:'2.5', fine:'1.5', approx_in:0.7087, recommended_nut:'M18 nut', washerOD_mm:34.0},
+  {metric:'M20', major_mm:20, coarse:'2.5', fine:'1.5', approx_in:0.7874, recommended_nut:'M20 nut', washerOD_mm:40.0},
+  {metric:'M22', major_mm:22, coarse:'2.5', fine:'1.5', approx_in:0.8661, recommended_nut:'M22 nut', washerOD_mm:44.0},
+  {metric:'M24', major_mm:24, coarse:'3.0', fine:'2.0', approx_in:0.9449, recommended_nut:'M24 nut', washerOD_mm:48.0},
+  {metric:'M27', major_mm:27, coarse:'3.0', fine:null, approx_in:1.0630, recommended_nut:'M27 nut', washerOD_mm:54.0},
+  {metric:'M30', major_mm:30, coarse:'3.5', fine:null, approx_in:1.1811, recommended_nut:'M30 nut', washerOD_mm:60.0},
+  {metric:'M36', major_mm:36, coarse:'4.0', fine:null, approx_in:1.4173, recommended_nut:'M36 nut', washerOD_mm:72.0}
+];
+
+// Utilities
+function mm(x){return (x*25.4).toFixed(2);} // inches to mm
+function toMMfromMm(mmVal){return mmVal.toFixed ? mmVal.toFixed(2) : mmVal}
+
+// Populate table
+const mappingTableBody = document.querySelector('#mappingTable tbody');
+const sizeInput = document.getElementById('sizeInput');
+const modeEl = document.getElementById('mode');
+const precisionEl = document.getElementById('precision');
+const output = document.getElementById('output');
+const filter = document.getElementById('filter');
+const inputLabel = document.getElementById('inputLabel');
+
+function renderTable(filterText='') {
+  mappingTableBody.innerHTML = '';
+  const rows = DATA.filter(r=>{
+    if(!filterText) return true;
+    const q = filterText.toLowerCase();
+    return (r.label && r.label.toLowerCase().includes(q)) ||
+           (r.sae && r.sae.toLowerCase().includes(q)) ||
+           (r.metric && r.metric.join(',').toLowerCase().includes(q)) ||
+           (r.dec && r.dec.toString().includes(q));
+  });
+  rows.forEach((r, idx)=>{
+    const tr = document.createElement('tr');
+    const metricStr = r.metric.join(', ');
+    const pitch = r.pitch || '';
+    const washer_mm = (r.washerOD_in*25.4).toFixed(2);
+    tr.innerHTML = `<td><strong>${r.label}</strong>${r.sae?'<div class="small">('+r.sae+')</div>':''}</td>
+                    <td class="mono">${r.dec.toFixed(4)}"</td>
+                    <td>${metricStr}</td>
+                    <td>${pitch}</td>
+                    <td>${r.nut}</td>
+                    <td class="mono">${r.washerOD_in.toFixed(2)}" / ${washer_mm} mm</td>`;
+    tr.dataset.idx = idx;
+    mappingTableBody.appendChild(tr);
+  });
+}
+
+function populateSelect() {
+  sizeInput.innerHTML='';
+  const mode = modeEl.value;
+  if(mode === 'metric-to-uss') return; // not used here
+  // We populate with DATA labels for USS/sae
+  DATA.forEach((r,i)=>{
+    const o = document.createElement('option');
+    o.value = i;
+    o.textContent = r.label + (r.metric? ' → ' + r.metric.join('/') : '');
+    sizeInput.appendChild(o);
+  });
+}
+
+// Show conversion based on selection and mode
+function showConversion() {
+  const mode = modeEl.value;
+  const idx = parseInt(sizeInput.value || 0);
+  const display = precisionEl.value;
+  const q = filter.value.trim();
+  if(isNaN(idx) || !DATA[idx]) {
+    output.textContent = 'Select a size to see conversions.';
+    return;
+  }
+  const item = DATA[idx];
+  if(mode === 'uss-to-metric' || mode === 'sae-to-metric') {
+    if(display === 'decimal') {
+      output.innerHTML = `<strong>${item.label}</strong> (${item.sae || 'SAE N/A'}) = <strong>${item.dec.toFixed(4)}"</strong> ≈ <strong>${(item.dec*25.4).toFixed(2)} mm</strong><br>
+        Common metric: <strong>${item.metric.join(', ')}</strong><br>
+        Metric pitch (common): <strong>${item.pitch}</strong><br>
+        Nut: <strong>${item.nut}</strong> · Washer OD: <strong>${item.washerOD_in.toFixed(2)}" / ${(item.washerOD_in*25.4).toFixed(2)} mm</strong>`;
+    } else {
+      output.innerHTML = `<strong>${item.label}</strong> → common metric: <strong>${item.metric.join(', ')}</strong> · Nut: <strong>${item.nut}</strong> · Washer: <strong>${item.washerOD_in.toFixed(2)}" / ${(item.washerOD_in*25.4).toFixed(0)} mm</strong>`;
+    }
+  } else if(mode === 'metric-to-uss') {
+    // treat selected index as metric index if we later change to metric select; for now show reverse candidates
+    const mmItem = METRIC_DATA.find(m=>m.metric === item.metric[0]) || METRIC_DATA[0];
+    output.innerHTML = `<strong>${mmItem.metric}</strong> ≈ <strong>${mmItem.approx_in.toFixed(4)}"</strong> (${(mmItem.approx_in*25.4).toFixed(2)} mm)<br>
+      Coarse pitch: <strong>${mmItem.coarse}</strong> mm ${mmItem.fine? '· Fine: '+mmItem.fine+' mm':''}<br>
+      Recommended nut: <strong>${mmItem.recommended_nut}</strong> · Washer OD: <strong>${mmItem.washerOD_mm} mm / ${(mmItem.washerOD_mm/25.4).toFixed(2)}"</strong>`;
+  }
+}
+
+// Event listeners
+modeEl.addEventListener('change', ()=>{
+  if(modeEl.value === 'metric-to-uss') {
+    // switch input label and populate metric options (use METRIC_DATA)
+    inputLabel.textContent = 'Metric size';
+    sizeInput.innerHTML = '';
+    METRIC_DATA.forEach((m,i)=>{
+      const opt = document.createElement('option');
+      opt.value = 'm-'+i;
+      opt.textContent = m.metric + ' ('+m.major_mm+' mm)';
+      sizeInput.appendChild(opt);
+    });
+  } else {
+    inputLabel.textContent = 'USS size / Fraction';
+    populateSelect();
+  }
+  renderTable(filter.value.trim());
+  sizeInput.selectedIndex = 0;
+  showConversion();
+});
+
+sizeInput.addEventListener('change', ()=>{
+  // if metric selected (value starts with m-), show metric info
+  const v = sizeInput.value;
+  if(typeof v === 'string' && v.startsWith('m-')){
+    const i = parseInt(v.split('-')[1]);
+    const mmItem = METRIC_DATA[i];
+    output.innerHTML = `<strong>${mmItem.metric}</strong> ≈ <strong>${mmItem.approx_in.toFixed(4)}"</strong> (${(mmItem.approx_in*25.4).toFixed(2)} mm)<br>
+      Coarse: <strong>${mmItem.coarse} mm</strong> ${mmItem.fine? '· Fine: '+mmItem.fine+' mm':''}<br>
+      Nut: <strong>${mmItem.recommended_nut}</strong> · Washer OD: <strong>${mmItem.washerOD_mm} mm / ${(mmItem.washerOD_mm/25.4).toFixed(2)}"</strong>`;
+    return;
+  }
+  showConversion();
+});
+
+precisionEl.addEventListener('change', showConversion);
+filter.addEventListener('input', ()=>{
+  renderTable(filter.value.trim());
+});
+
+// Clicking table row selects
+mappingTableBody.addEventListener('click', e=>{
+  const tr = e.target.closest('tr');
+  if(!tr) return;
+  const idx = tr.dataset.idx;
+  if(idx!==undefined) {
+    sizeInput.value = idx;
+    sizeInput.dispatchEvent(new Event('change'));
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+});
+
+// Init
+populateSelect();
+renderTable();
+sizeInput.selectedIndex = 0;
+showConversion();
+
+// Simple PWA service worker registration and inline manifest
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{/*sw registration failed*/});
+}
+</script>
+
+<!-- Inline manifest and service worker files embedded using data URIs generated below when hosted.
+     Because GitHub Pages serves static files, we include the files below as blob-downloads in one package.
+-->
+</body>
+</html>
