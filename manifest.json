@@ -3,8 +3,8 @@
   "short_name": "KM Elite",
   "start_url": ".",
   "display": "standalone",
-  "background_color": "#FFD700",
-  "theme_color": "#FFD700",
+  "background_color": "yellow",
+  "theme_color": "black",
   "icons": [
     {
       "src": "icon-192.png",

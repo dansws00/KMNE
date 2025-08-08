@@ -1,23 +1,16 @@
-
-const CACHE_NAME = 'km-northern-elite-v1';
-const FILES_TO_CACHE = [
-  '/km_northern_elite.html',
-  '/manifest.json'
-];
-self.addEventListener('install', (evt) => {
-  evt.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(FILES_TO_CACHE))
+self.addEventListener('install', e => {
+  e.waitUntil(
+    caches.open('km-elite-store').then(cache => cache.addAll([
+      '/',
+      '/index.html',
+      '/manifest.json',
+      '/icon-192.png',
+      '/icon-512.png'
+    ]))
   );
-  self.skipWaiting();
 });
-self.addEventListener('activate', (evt) => {
-  evt.waitUntil(
-    caches.keys().then(keyList => Promise.all(keyList.map(key => {
-      if(key !== CACHE_NAME) return caches.delete(key);
-    })))
+self.addEventListener('fetch', e => {
+  e.respondWith(
+    caches.match(e.request).then(response => response || fetch(e.request))
   );
-  self.clients.claim();
-});
-self.addEventListener('fetch', (evt) => {
-  evt.respondWith(caches.match(evt.request).then(resp => resp || fetch(evt.request)));
 });
