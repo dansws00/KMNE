@@ -1,0 +1,95 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>KM Northern Elite Fastener Tool</title>
+<style>
+    body {
+        background-color: yellow;
+        color: black;
+        font-family: Arial, sans-serif;
+        padding: 20px;
+    }
+    h1 {
+        text-align: center;
+    }
+    label {
+        font-weight: bold;
+    }
+    select, input[type="radio"], button {
+        margin: 5px 0;
+    }
+    .result-box {
+        background: white;
+        color: black;
+        padding: 10px;
+        margin-top: 20px;
+        border-radius: 5px;
+        border: 2px solid black;
+    }
+</style>
+<script>
+    const dataset = {
+        bolt: {
+            "1/4" USS": {nut: "1/4" USS Nut", washer: "1/4" USS Flat Washer", lock: "1/4" USS Lock Washer", metric: "M6"},
+            "5/16" USS": {nut: "5/16" USS Nut", washer: "5/16" USS Flat Washer", lock: "5/16" USS Lock Washer", metric: "M8"},
+            "3/8" USS": {nut: "3/8" USS Nut", washer: "3/8" USS Flat Washer", lock: "3/8" USS Lock Washer", metric: "M10"}
+        },
+        nut: {
+            "1/4" USS Nut": {bolt: "1/4" USS Bolt", washer: "1/4" USS Flat Washer", lock: "1/4" USS Lock Washer", metric: "M6"},
+            "5/16" USS Nut": {bolt: "5/16" USS Bolt", washer: "5/16" USS Flat Washer", lock: "5/16" USS Lock Washer", metric: "M8"}
+        },
+        washer: {
+            "1/4" USS Flat Washer": {bolt: "1/4" USS Bolt", nut: "1/4" USS Nut", lock: "1/4" USS Lock Washer", metric: "M6"}
+        },
+        lock: {
+            "1/4" USS Lock Washer": {bolt: "1/4" USS Bolt", nut: "1/4" USS Nut", washer: "1/4" USS Flat Washer", metric: "M6"}
+        }
+    };
+
+    function updateSizes() {
+        const type = document.querySelector('input[name="type"]:checked').value;
+        const sizeSelect = document.getElementById("size");
+        sizeSelect.innerHTML = "";
+        for (let size in dataset[type]) {
+            let option = document.createElement("option");
+            option.value = size;
+            option.textContent = size;
+            sizeSelect.appendChild(option);
+        }
+    }
+
+    function getMatches() {
+        const type = document.querySelector('input[name="type"]:checked').value;
+        const size = document.getElementById("size").value;
+        const matches = dataset[type][size];
+
+        document.getElementById("results").innerHTML = `
+            <strong>Matches for ${size}:</strong><br>
+            Bolt: ${matches.bolt || size}<br>
+            Nut: ${matches.nut || size}<br>
+            Washer: ${matches.washer || size}<br>
+            Lock Washer: ${matches.lock || size}<br>
+            Metric Equivalent: ${matches.metric}
+        `;
+    }
+</script>
+</head>
+<body>
+    <h1>KM Northern Elite Fastener Tool</h1>
+    <p>Select the type of fastener you have:</p>
+    <label><input type="radio" name="type" value="bolt" checked onclick="updateSizes()"> Bolt</label>
+    <label><input type="radio" name="type" value="nut" onclick="updateSizes()"> Nut</label>
+    <label><input type="radio" name="type" value="washer" onclick="updateSizes()"> Flat Washer</label>
+    <label><input type="radio" name="type" value="lock" onclick="updateSizes()"> Lock Washer</label>
+
+    <p>Select Size:</p>
+    <select id="size"></select>
+    <br>
+    <button onclick="getMatches()">Find Matching Parts</button>
+
+    <div id="results" class="result-box"></div>
+
+    <script>updateSizes();</script>
+</body>
+</html>
