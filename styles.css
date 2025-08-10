@@ -1,0 +1,49 @@
+:root {
+  --km-yellow: #FFD400;
+  --km-black: #000000;
+  --card: #FFF8CC;
+}
+html, body {
+  margin: 0;
+  background: var(--km-yellow);
+  color: var(--km-black);
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+}
+.app {
+  max-width: 1024px;
+  margin: 18px auto;
+  padding: 16px;
+  background: var(--card);
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.12);
+}
+header { text-align: center; }
+header img { max-width: 460px; width: 100%; height: auto; }
+h1 { margin: 8px 0 4px; font-size: 22px; }
+.lead { margin: 0 auto 12px; opacity: .95; }
+.controls { display: flex; flex-wrap: wrap; gap: 12px; }
+.col { flex: 1; min-width: 220px; }
+label { display: block; font-size: 13px; margin-bottom: 6px; font-weight: 700; }
+select, input, button {
+  padding: 10px;
+  border: 1px solid rgba(0,0,0,.15);
+  border-radius: 6px;
+  background: #fff;
+  color: #000;
+}
+button { cursor: pointer; }
+.btn-primary {
+  background: var(--km-black);
+  color: var(--km-yellow);
+  border-color: var(--km-black);
+  font-weight: 800;
+}
+.result, .panel {
+  margin-top: 14px; padding: 12px;
+  background: #fffef0; border-radius: 6px; border: 1px solid rgba(0,0,0,.08);
+}
+.small { font-size: 12px; opacity: .85; }
+.flex { display:flex; gap:12px; align-items: center; flex-wrap: wrap; }
+@media (max-width: 720px) {
+  .controls { flex-direction: column; }
+}

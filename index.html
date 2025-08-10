@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KM Northern Elite — Fastener Compatibility Tool</title>
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+  <header>
+    <img src="logo.png" alt="Kimball Midwest logo (placeholder)" />
+    <h1>KM Northern Elite — Fastener Compatibility</h1>
+    <p class="lead">Choose a type and standard, enter a size, and we’ll suggest matching nut, flat washer, and lock washer — plus cross-system equivalents.</p>
+  </header>
+
+  <main>
+    <div class="controls">
+      <div class="col">
+        <label for="type">Fastener Type</label>
+        <select id="type">
+          <option value="bolt">Bolt</option>
+          <option value="nut">Nut</option>
+          <option value="flat">Flat Washer</option>
+          <option value="lock">Lock Washer</option>
+        </select>
+      </div>
+
+      <div class="col">
+        <label>Standard</label>
+        <div class="flex" role="radiogroup" aria-label="Standard">
+          <label><input type="radio" name="std" value="metric" checked> Metric</label>
+          <label><input type="radio" name="std" value="uss"> USS</label>
+          <label><input type="radio" name="std" value="sae"> SAE</label>
+        </div>
+      </div>
+
+      <div class="col">
+        <label for="size">Select Size</label>
+        <select id="size"></select>
+      </div>
+
+      <div class="col" id="pitchWrap" style="display:none">
+        <label for="pitch">Pitch / TPI</label>
+        <select id="pitch"></select>
+      </div>
+    </div>
+
+    <div class="panel">
+      <button id="find" class="btn-primary">Find Compatible Parts</button>
+      <div id="output" class="result">No selection yet.</div>
+      <div class="small">Note: Uses broad shop approximations; verify critical fits with specs.</div>
+    </div>
+  </main>
+
+  <footer class="small">PWA-ready — Add to Home Screen after hosting. Replace <code>logo.png</code> with the official Kimball Midwest logo if you have rights to use it.</footer>
+</div>
+
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js');
+}
+</script>
+<script src="app.js"></script>
+</body>
+</html>
