@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KM Northern Elite — Fastener Compatibility Tool</title>
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+  <header>
+    <img src="northern_elite_logo.png" alt="Northern Elite logo" class="brand-logo" />
+    <img src="logo.png" alt="Kimball Midwest logo" />
+    <h1>KM Northern Elite — Fastener Compatibility</h1>
+    <p class="lead">Select type, system, size (and length for bolts) to get matching hardware, cross‑system equivalents, finishes, and Kimball Midwest SKUs.</p>
+  </header>
+
+  <main>
+    <div class="controls">
+      <div class="col">
+        <label for="type">Fastener Type</label>
+        <select id="type">
+          <option value="bolt">Bolt</option>
+          <option value="nut">Nut</option>
+          <option value="flat">Flat Washer</option>
+          <option value="lock">Lock Washer</option>
+        </select>
+      </div>
+
+      <div class="col">
+        <label>Standard</label>
+        <div class="flex" role="radiogroup" aria-label="Standard">
+          <label><input type="radio" name="std" value="metric" checked> Metric</label>
+          <label><input type="radio" name="std" value="uss"> USS</label>
+          <label><input type="radio" name="std" value="sae"> SAE</label>
+        </div>
+      </div>
+
+      <div class="col">
+        <label for="size">Select Size</label>
+        <select id="size"></select>
+      </div>
+
+      <div class="col" id="pitchWrap" style="display:none">
+        <label for="pitch">Pitch / TPI</label>
+        <select id="pitch"></select>
+      </div>
+
+      <div class="col" id="lengthWrap">
+        <label for="length">Bolt Length (<span id="lengthUnit">in</span>)</label>
+        <input id="length" placeholder="e.g. 1 or 25">
+      </div>
+    </div>
+
+    <div class="panel">
+      <button id="find" class="btn-primary">Find Compatible Parts</button>
+      <span class="badge">PWA</span>
+      <div id="output" class="result">No selection yet.</div>
+      <div class="small">Shop approximation — confirm critical fits from specs.</div>
+    </div>
+  </main>
+
+  <footer class="small">Install on your phone via “Add to Home Screen.” Kimball Midwest names/SKUs are references to their catalog.</footer>
+</div>
+
+<script>
+if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
+</script>
+<script src="app.js"></script>
+</body>
+</html>
